@@ -111,33 +111,46 @@ plt.show()
 
 print('The slope of the basic fit is', slope_basic, 'with a standard error of', std_err_basic)
 print('The slope of the acidic fit is', slope_acidic , 'with a standard error of', std_err_acidic)
+print('The slope of the acidic fit without 10^-4 M is', slope_acidic_2 , 'with a standard error of', std_err_acidic_2)
 
 epsilon_basic = slope_basic
 epsilon_acidic = slope_acidic
+epsilon_acidic_2 = slope_acidic_2
 
+# calculate the wavelength of the maximum absorbance as a mean of the maximum absorbance of the 5 solutions
 lst_max_wavelength_basic = []
 lst_max_wavelength_acidic = []
-lst_max_wavelength_buffer = []
-
+lst_max_wavelength_buffer50 = []
+lst_max_wavelength_buffer52 = []
 for i in basic_absorbance:
     lst_max_wavelength_basic.append(basic_wavelength[0][np.argmax(i)])
 
-for i in acidic_absorbance:
+# exclude the first solution of the acidic solutions
+for i in acidic_absorbance[1:]:
     lst_max_wavelength_acidic.append(acidic_wavelength[0][np.argmax(i)])
 
 for i in buffer_absorbance:
-    lst_max_wavelength_buffer.append(buffer_wavelength[0][np.argmax(i)])
+    lst_max_wavelength_buffer50.append(buffer_wavelength[0][np.argmax(i)])
+
 
 max_wavelength_basic = np.mean(lst_max_wavelength_basic)
 max_wavelength_acidic = np.mean(lst_max_wavelength_acidic)
-max_wavelength_buffer = np.mean(lst_max_wavelength_buffer)
 
 
-#max_wavelength_basic = basic_wavelength[0][np.argmax(basic_absorbance[0])]
-#max_wavelength_acidic = acidic_wavelength[0][np.argmax(acidic_absorbance[0])]
 print('\nThe wavelength of the maximum absorbance of the basic solution is', max_wavelength_basic, 'nm')
 print('The wavelength of the maximum absorbance of the acidic solution is', max_wavelength_acidic, 'nm')
-print('The wavelength of the maximum absorbance of the buffer solution is', max_wavelength_buffer, 'nm')
+
+
+#absorbance in buffer at maximum wavelength
+
+absorbance_buffer1acidic = buffer_absorbance[0][np.where(buffer_wavelength[0] == 518.0)]
+print('\nThe absorbance of the buffer 5.0 solution in the acidic at 518 nm is', absorbance_buffer1acidic)
+absorbance_buffer2acidic = buffer_absorbance[1][np.where(buffer_wavelength[1] == 518.0)]
+print('The absorbance of the buffer 5.2 solution in the acidic at 518 nm is', absorbance_buffer2acidic)
+absorbance_buffer1basic = buffer_absorbance[0][np.where(buffer_wavelength[0] == 435.0)]
+print('The absorbance of the buffer 5.0 solution in the basic at 435 nm is', absorbance_buffer1basic)
+absorbance_buffer2basic = buffer_absorbance[1][np.where(buffer_wavelength[1] == 435.0)]
+print('The absorbance of the buffer 5.2 solution in the basic at 435 nm is', absorbance_buffer2basic)
 
 
 def calculate_fwhm(wavelengths, absorbance):
@@ -171,6 +184,7 @@ def calculate_fwhm(wavelengths, absorbance):
 # Calculate FWHM for the basic and acidic spectra
 lst_fwhm_basic = []
 lst_fwhm_acidic = []
+lst_fwhm_acidic_2 = []
 
 for i in range(len(basic_absorbance)):
     lst_fwhm_basic.append(calculate_fwhm(basic_wavelength[i], basic_absorbance[i]))
@@ -178,13 +192,17 @@ for i in range(len(basic_absorbance)):
 for i in range(len(acidic_absorbance)):
     lst_fwhm_acidic.append(calculate_fwhm(acidic_wavelength[i], acidic_absorbance[i]))
 
+for i in range(len(acidic_absorbance[1:])):
+    lst_fwhm_acidic_2.append(calculate_fwhm(acidic_wavelength[i], acidic_absorbance[i]))
 
 
 fwhm_basic = np.mean(lst_fwhm_basic)
 fwhm_acidic = np.mean(lst_fwhm_acidic)
+fwhm_acidic_2 = np.mean(lst_fwhm_acidic_2)
 
 print('\nThe FWHM of the basic solution spectrum is', abs(fwhm_basic), 'nm')
 print('The FWHM of the acidic solution spectrum is', abs(fwhm_acidic), 'nm')
+print('The FWHM of the acidic solution spectrum without 10^-4 M is', abs(fwhm_acidic_2), 'nm')
 
 # transition dipole moment
 
@@ -194,95 +212,73 @@ def calculate_transition_dipole(epsilon, fwhm, lambda_max):
 
     return transition_dipole
 
-# error propagation for transition dipole moment
+transition_dipole_basic = calculate_transition_dipole(epsilon_basic, fwhm_basic, max_wavelength_basic)
+transition_dipole_acidic = calculate_transition_dipole(epsilon_acidic_2, fwhm_acidic, max_wavelength_acidic)
 
-# Define values and errors for the basic solution
-epsilon_basic, epsilon_basic_error = slope_basic, std_err_basic
-fwhm_basic, fwhm_basic_error = fwhm_basic, np.sqrt(2)
-lambda_max_basic, lambda_max_basic_error = max_wavelength_basic, 1.0
+print('\nThe transition dipole moment of the basic solution is', transition_dipole_basic, 'D')
+print('The transition dipole moment of the acidic solution is', transition_dipole_acidic, 'D')
 
-# Calculate transition dipole moment for the basic solution
-transition_dipole_basic = calculate_transition_dipole(epsilon_basic, fwhm_basic, lambda_max_basic)
+# pKa calculation
 
-# Define values and errors for the acidic solution
-epsilon_acidic, epsilon_acidic_error = slope_acidic, std_err_acidic
-fwhm_acidic, fwhm_acidic_error = fwhm_acidic, np.sqrt(2)
-lambda_max_acidic, lambda_max_acidic_error = max_wavelength_acidic, 1.0
+def calculate_pKa(pH, absorbance_Ind, absorbance_HInd, epsilon_a, epsilon_b):
 
-# Calculate transition dipole moment for the acidic solution
-transition_dipole_acidic = calculate_transition_dipole(epsilon_acidic, fwhm_acidic, lambda_max_acidic)
+    ind = absorbance_Ind / epsilon_b
+    hind = absorbance_HInd / epsilon_a
+    pKa = pH + np.log10(ind/hind)
 
-# Define values and errors for the acidic solution without 10^-4 M
-epsilon_acidic_2, epsilon_acidic_error_2 = slope_acidic_2, std_err_acidic_2
-fwhm_acidic_2, fwhm_acidic_error_2 = fwhm_acidic, np.sqrt(2)
-lambda_max_acidic_2, lambda_max_acidic_error = max_wavelength_acidic, 1.0
-
-# Calculate transition dipole moment for the acidic solution without 10^-4 M
-transition_dipole_acidic_2 = calculate_transition_dipole(epsilon_acidic_2, fwhm_acidic, lambda_max_acidic_2)
+    return pKa
 
 
-# Function to calculate error using error propagation
-def calculate_error(epsilon, epsilon_error, fwhm, fwhm_error, lambda_max, lambda_max_error):
-    partial_mu_epsilon = np.sqrt(0.0092 * (fwhm / lambda_max))
-    partial_mu_fwhm = np.where(np.abs(fwhm) < 1e-10, 0.0, np.sqrt(0.0092 * epsilon * lambda_max / (fwhm ** 3)))
-    partial_mu_lambda_max = np.where(np.abs(lambda_max) < 1e-10, 0.0,
-                                     np.sqrt(0.0092 * epsilon * fwhm / (lambda_max ** 3)))
+pka1 = calculate_pKa(5.08, absorbance_buffer1basic, absorbance_buffer1acidic, epsilon_acidic_2, epsilon_basic)
+pka2 = calculate_pKa(5.29, absorbance_buffer2basic, absorbance_buffer2acidic, epsilon_acidic_2, epsilon_basic)
 
-    mu_error = np.sqrt((partial_mu_epsilon * epsilon_error) ** 2 + (partial_mu_fwhm * fwhm_error) ** 2 + (
-                partial_mu_lambda_max * lambda_max_error) ** 2)
+print('\nThe pKa of the first buffer solution is', pka1)
+print('The pKa of the second buffer solution is', pka2)
 
-    return mu_error
+# Calculate Ka
 
+def calculate_Ka(pKa):
 
-# Calculate errors for the basic and acidic solutions
-mu_error_basic = calculate_error(epsilon_basic, epsilon_basic_error, fwhm_basic, fwhm_basic_error, lambda_max_basic,
-                                 lambda_max_basic_error)
-mu_error_acidic = calculate_error(epsilon_acidic, epsilon_acidic_error, fwhm_acidic, fwhm_acidic_error,
-                                  lambda_max_acidic, lambda_max_acidic_error)
-mu_error_acidic_2 = calculate_error(epsilon_acidic_2, epsilon_acidic_error_2, fwhm_acidic_2, fwhm_acidic_error_2,
-                                    lambda_max_acidic_2, lambda_max_acidic_error)
+        Ka = 10**(-pKa)
 
-# Print results
-print('\nBasic Solution:')
-print('Transition Dipole Moment:', transition_dipole_basic, 'Debye')
-print('Error on Transition Dipole Moment:', mu_error_basic, 'Debye')
+        return Ka
 
-print('\nAcidic Solution:')
-print('Transition Dipole Moment:', transition_dipole_acidic, 'Debye')
-print('Error on Transition Dipole Moment:', mu_error_acidic, 'Debye')
+Ka1 = calculate_Ka(pka1)
+Ka2 = calculate_Ka(pka2)
 
-print('\nAcidic Solution without 10^-4 M:')
-print('Transition Dipole Moment:', transition_dipole_acidic_2, 'Debye')
-print('Error on Transition Dipole Moment:', mu_error_acidic_2, 'Debye')
+print('\nThe Ka of the first buffer solution is', Ka1)
+print('The Ka of the second buffer solution is', Ka2)
 
 
-# Calculate the pKa value
+# Error Calculation
 
-def calculate_pka(pH, epsilon_Ind, epsilon_HInd, lambda_max_Ind, lambda_max_HInd):
-    pka = pH - (np.log10((lambda_max_Ind/epsilon_Ind)/(lambda_max_HInd/epsilon_HInd)))
-    return pka
+error_epsilon_basic = std_err_basic
+error_epsilon_acidic = std_err_acidic_2
 
-pka1 = calculate_pka(5.08, epsilon_basic, epsilon_acidic, max_wavelength_basic, max_wavelength_acidic)
+error_mu_basic = (0.5 * np.sqrt(0.0092*(fwhm_basic/max_wavelength_basic)) * (1/np.sqrt(epsilon_basic))) * error_epsilon_basic
+error_mu_acidic = (0.5 * np.sqrt(0.0092*(fwhm_acidic/max_wavelength_acidic)) * (1/np.sqrt(epsilon_acidic_2))) * error_epsilon_acidic
 
-pka2 = calculate_pka(5.29, epsilon_basic, epsilon_acidic, max_wavelength_basic, max_wavelength_acidic)
+error_c_a1 = absorbance_buffer1acidic * -(1/(epsilon_acidic_2)**2) * error_epsilon_acidic
+error_c_a2 = absorbance_buffer2acidic * -(1/(epsilon_acidic_2)**2) * error_epsilon_acidic
+error_c_b1 = absorbance_buffer1basic * -(1/(epsilon_basic)**2) * error_epsilon_basic
+error_c_b2 = absorbance_buffer2basic * -(1/(epsilon_basic)**2) * error_epsilon_basic
+
+ind1 = absorbance_buffer1basic/epsilon_basic
+ind2 = absorbance_buffer2basic/epsilon_basic
+hind1 = absorbance_buffer1acidic/epsilon_acidic_2
+hind2 = absorbance_buffer2acidic/epsilon_acidic_2
+
+error_pka1 = np.sqrt((((1/(np.log(10)*ind1))**2) * error_c_b1**2) + (((-1/(np.log(10)*hind1))**2) * error_c_a1**2))
+error_pka2 = np.sqrt(((1/(np.log(10)*ind2))**2) * error_c_b2**2 + ((-1/(np.log(10)*hind2))**2) * error_c_a2**2)
+
+error_ka1 = np.sqrt((((1/hind1)**2)*(error_c_b1**2)) + (((-ind1/(hind1**2))**2)*(error_c_a1**2)))
+error_ka2 = np.sqrt((((1/hind2)**2)*(error_c_b2**2)) + (((-ind2/(hind2**2))**2)*(error_c_a2**2)))
+
+print('\nThe error of the transition dipole moment of the basic solution is', error_mu_basic, 'D')
+print('The error of the transition dipole moment of the acidic solution is', error_mu_acidic, 'D')
+print('The error of the pKa of the first buffer solution is', error_pka1)
+print('The error of the pKa of the second buffer solution is', error_pka2)
+print('The error of the Ka of the first buffer solution is', error_ka1)
+print('The error of the Ka of the second buffer solution is', error_ka2)
 
 
-print('\nThe pKa value for the first transition is', pka1)
-print('The pKa value for the second transition is', pka2)
-
-pka1_without_10_4 = calculate_pka(5.08, epsilon_basic, epsilon_acidic_2, max_wavelength_basic, max_wavelength_acidic)
-
-pka2_without_10_4 = calculate_pka(5.29, epsilon_basic, epsilon_acidic_2, max_wavelength_basic, max_wavelength_acidic)
-
-print('\nThe pKa value for the first transition without 10^-4 M is', pka1_without_10_4)
-print('The pKa value for the second transition without 10^-4 M is', pka2_without_10_4)
-
-k_a1 = 10**(-pka1)
-k_a2 = 10**(-pka2)
-k_a1_without_10_4 = 10**(-pka1_without_10_4)
-k_a2_without_10_4 = 10**(-pka2_without_10_4)
-
-print('\nThe Ka value for the first transition is', k_a1)
-print('The Ka value for the second transition is', k_a2)
-print('The Ka value for the first transition without 10^-4 M is', k_a1_without_10_4)
-print('The Ka value for the second transition without 10^-4 M is', k_a2_without_10_4)
