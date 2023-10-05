@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
+from scipy.optimize import curve_fit
 
 # Task 1
 
@@ -13,6 +14,7 @@ concentrations = [10**-4, 5*10**-5, 2.5*10**-5, 10**-5, 2*10**-6]
 basic = ['NaOH_1.Sample.asc', 'NaOH_22.Sample.Raw.asc', 'NaOH_33.Sample.Raw.asc', 'NaOH_4.Sample.asc', 'NaOH_5.Sample.asc']
 acidic = ['HCl_1.Sample.asc', 'HCl_2.Sample.asc', 'HCl_3.Sample.asc', 'HCl_4.Sample.asc', 'HCl_5.Sample.asc']
 buffer = ['Buff_50.22.Sample.Raw.asc', 'Buff_52.22.Sample.Raw.asc']
+
 
 basic_absorbance = []
 basic_wavelength = []
@@ -36,42 +38,106 @@ for i in buffer:
     buffer_absorbance.append(np.genfromtxt(i, skip_header=90, skip_footer=100, usecols=1))
     buffer_wavelength.append(np.genfromtxt(i, skip_header=90, skip_footer=100, usecols=0))
 
+# Gauss  fit for 10^-4 M acidic solution
+
+def gauss(x, a, b, c, d):
+    return a*np.exp(-((x-b)**2)/(2*c**2)) + d
+
+
+x_0 = acidic_wavelength[0]
+y_0 = acidic_absorbance[0]
+x_1 = acidic_wavelength[1]
+y_1 = acidic_absorbance[1]
+x_2 = acidic_wavelength[2]
+y_2 = acidic_absorbance[2]
+x_3 = acidic_wavelength[3]
+y_3 = acidic_absorbance[3]
+x_4 = acidic_wavelength[4]
+y_4 = acidic_absorbance[4]
+
+
+popt_0, pcov_0 = curve_fit(gauss, x_0, y_0, p0=[0.5, 518, 1, 0.5])
+popt_1, pcov_1 = curve_fit(gauss, x_1, y_1, p0=[0.5, 518, 1, 0.5])
+popt_2, pcov_2 = curve_fit(gauss, x_2, y_2, p0=[0.5, 518, 1, 0.5])
+popt_3, pcov_3 = curve_fit(gauss, x_3, y_3, p0=[0.5, 518, 1, 0.5])
+popt_4, pcov_4 = curve_fit(gauss, x_4, y_4, p0=[0.5, 518, 1, 0.5])
+
+
+
+
+plt.figure(figsize=(10, 6))
+plt.plot(x_0, y_0, 'bo', label='data')
+plt.plot(x_0, gauss(x_0, *popt_0), 'r-', label='fit')
+plt.legend()
+#plt.title('Gauss fit for 10^-4 M acidic solution')
+plt.xlabel('Wavelength / nm')
+plt.ylabel('Absorbance')
+plt.grid(True)
+plt.savefig('gauss_fit.pdf')
+#plt.show()
+
+
 # Plotting the absorbance spectra
 
 plt.figure(figsize=(10, 6))
-plt.plot(basic_wavelength[0], basic_absorbance[0], label='10^-4 M')
-plt.plot(basic_wavelength[1], basic_absorbance[1], label='5*10^-5 M')
-plt.plot(basic_wavelength[2], basic_absorbance[2], label='2.5*10^-5 M')
-plt.plot(basic_wavelength[3], basic_absorbance[3], label='10^-5 M')
-plt.plot(basic_wavelength[4], basic_absorbance[4], label='2*10^-6 M')
-plt.xlabel('Wavelength (nm)')
+plt.plot(basic_wavelength[0], basic_absorbance[0], label='100 μM')
+plt.plot(basic_wavelength[1], basic_absorbance[1], label='50 μM')
+plt.plot(basic_wavelength[2], basic_absorbance[2], label='25 μM')
+plt.plot(basic_wavelength[3], basic_absorbance[3], label='10 μM')
+plt.plot(basic_wavelength[4], basic_absorbance[4], label='2 μM')
+plt.xlabel('Wavelength / nm')
 plt.ylabel('Absorbance')
-plt.title('Absorbance spectra of basic solutions')
+#plt.title('Absorbance spectra of basic solutions')
+plt.grid(True)
 plt.legend()
+plt.savefig('basic.pdf')
+#plt.show()
+
+plt.figure(figsize=(10, 6))
+plt.plot(acidic_wavelength[0], acidic_absorbance[0], label='100 μM')
+plt.plot(acidic_wavelength[1], acidic_absorbance[1], label='50 μM')
+plt.plot(acidic_wavelength[2], acidic_absorbance[2], label='25 μM')
+plt.plot(acidic_wavelength[3], acidic_absorbance[3], label='10 μM')
+plt.plot(acidic_wavelength[4], acidic_absorbance[4], label='2 μM')
+plt.xlabel('Wavelength / nm')
+plt.ylabel('Absorbance')
+#plt.title('Absorbance spectra of acidic solutions')
+plt.grid(True)
+plt.legend()
+plt.savefig('acidic.pdf')
 plt.show()
 
 plt.figure(figsize=(10, 6))
-plt.plot(acidic_wavelength[0], acidic_absorbance[0], label='10^-4 M')
-plt.plot(acidic_wavelength[1], acidic_absorbance[1], label='5*10^-5 M')
-plt.plot(acidic_wavelength[2], acidic_absorbance[2], label='2.5*10^-5 M')
-plt.plot(acidic_wavelength[3], acidic_absorbance[3], label='10^-5 M')
-plt.plot(acidic_wavelength[4], acidic_absorbance[4], label='2*10^-6 M')
-plt.xlabel('Wavelength (nm)')
+plt.plot(acidic_wavelength[0], acidic_absorbance[0], label='100 μM')
+plt.plot(acidic_wavelength[1], acidic_absorbance[1], label='50 μM')
+plt.plot(acidic_wavelength[2], acidic_absorbance[2], label='25 μM')
+plt.plot(acidic_wavelength[3], acidic_absorbance[3], label='10 μM')
+plt.plot(acidic_wavelength[4], acidic_absorbance[4], label='2 μM')
+plt.plot(acidic_wavelength[0], gauss(acidic_wavelength[0], *popt_0), label='fit 100 μM')
+plt.plot(acidic_wavelength[1], gauss(acidic_wavelength[1], *popt_1), label='fit 50 μM')
+plt.plot(acidic_wavelength[2], gauss(acidic_wavelength[2], *popt_2), label='fit 25 μM')
+plt.plot(acidic_wavelength[3], gauss(acidic_wavelength[3], *popt_3), label='fit 10 μM')
+plt.plot(acidic_wavelength[4], gauss(acidic_wavelength[4], *popt_4), label='fit 2 μM')
+plt.xlabel('Wavelength / nm')
 plt.ylabel('Absorbance')
-plt.title('Absorbance spectra of acidic solutions')
+#plt.title('Absorbance spectra of acidic solutions with Gauss fit')
+plt.grid(True)
 plt.legend()
+plt.savefig('acidic_gauss.pdf')
 plt.show()
 
 plt.figure(figsize=(10, 6))
 plt.plot(buffer_wavelength[0], buffer_absorbance[0], label='pH 5.0')
 plt.plot(buffer_wavelength[1], buffer_absorbance[1], label='pH 5.2')
-plt.plot(acidic_wavelength[0], acidic_absorbance[0], label='10^-4 M')
-plt.plot(basic_wavelength[0], basic_absorbance[0], label='10^-4 M')
-plt.xlabel('Wavelength (nm)')
+plt.plot(acidic_wavelength[0], acidic_absorbance[0], label='acidic 100 μM')
+plt.plot(basic_wavelength[0], basic_absorbance[0], label='basic 100 μM')
+plt.xlabel('Wavelength / nm')
 plt.ylabel('Absorbance')
-plt.title('Absorbance spectra of buffer solutions and 10^-4 M solutions')
+#plt.title('Absorbance spectra of buffer solutions and 100 μM solutions')
+plt.grid(True)
 plt.legend()
-plt.show()
+plt.savefig('buffer_and_10e-4.pdf')
+#plt.show()
 
 # Beer-Lambert Plot
 
@@ -94,20 +160,22 @@ plt.scatter(concentrations, acidic_max, label='Acidic')
 
 
 slope_basic, intercept_basic, r_value, p_value, std_err_basic = stats.linregress(concentrations, basic_max)
-plt.plot(concentrations, slope_basic*np.array(concentrations) + intercept_basic, label='Basic fit')
+plt.plot(concentrations, slope_basic*np.array(concentrations) + intercept_basic, label=f'Basic fit: y = {slope_basic:.2f} * x + {intercept_basic:.2f}')
 
 slope_acidic_2, intercept_acidic_2, r_value, p_value, std_err_acidic_2 = stats.linregress(concentrations[1:], acidic_max[1:])
-plt.plot(concentrations[1:], slope_acidic_2*np.array(concentrations[1:]) + intercept_acidic_2, label='Acidic fit without 10^-4 M')
+plt.plot(concentrations[1:], slope_acidic_2*np.array(concentrations[1:]) + intercept_acidic_2, label=f'Acidic fit without 100 μM: y = {slope_acidic_2:.2f} * x + {intercept_acidic_2:.2f}')
 
 slope_acidic, intercept_acidic, r_value, p_value, std_err_acidic = stats.linregress(concentrations, acidic_max)
-plt.plot(concentrations, slope_acidic*np.array(concentrations) + intercept_acidic, label='Acidic fit')
+plt.plot(concentrations, slope_acidic*np.array(concentrations) + intercept_acidic, label=f'Acidic fit: y = {slope_acidic:.2f} * x + {intercept_acidic:.2f}')
 
 
-plt.xlabel('Concentration (M)')
+plt.xlabel('Concentration / M')
 plt.ylabel('Absorbance')
-plt.title('Beer-Lambert Plot')
+#plt.title('Beer-Lambert Plot')
+plt.grid(True)
 plt.legend()
-plt.show()
+plt.savefig('beer_lambert.pdf')
+#plt.show()
 
 print('The slope of the basic fit is', slope_basic, 'with a standard error of', std_err_basic)
 print('The slope of the acidic fit is', slope_acidic , 'with a standard error of', std_err_acidic)
@@ -268,6 +336,12 @@ ind2 = absorbance_buffer2basic/epsilon_basic
 hind1 = absorbance_buffer1acidic/epsilon_acidic_2
 hind2 = absorbance_buffer2acidic/epsilon_acidic_2
 
+print('\nThe concentration of the acidic solution of the first buffer solution is', ind1)
+print('The concentration of the acidic solution of the second buffer solution is', ind2)
+print('The concentration of the basic solution of the first buffer solution is', hind1)
+print('The concentration of the basic solution of the second buffer solution is', hind2)
+
+
 error_pka1 = np.sqrt((((1/(np.log(10)*ind1))**2) * error_c_b1**2) + (((-1/(np.log(10)*hind1))**2) * error_c_a1**2))
 error_pka2 = np.sqrt(((1/(np.log(10)*ind2))**2) * error_c_b2**2 + ((-1/(np.log(10)*hind2))**2) * error_c_a2**2)
 
@@ -276,9 +350,11 @@ error_ka2 = np.sqrt((((1/hind2)**2)*(error_c_b2**2)) + (((-ind2/(hind2**2))**2)*
 
 print('\nThe error of the transition dipole moment of the basic solution is', error_mu_basic, 'D')
 print('The error of the transition dipole moment of the acidic solution is', error_mu_acidic, 'D')
+print('The error of the concentration of the acidic solution of the first buffer solution is', error_c_a1)
+print('The error of the concentration of the acidic solution of the second buffer solution is', error_c_a2)
+print('The error of the concentration of the basic solution of the first buffer solution is', error_c_b1)
+print('The error of the concentration of the basic solution of the second buffer solution is', error_c_b2)
 print('The error of the pKa of the first buffer solution is', error_pka1)
 print('The error of the pKa of the second buffer solution is', error_pka2)
 print('The error of the Ka of the first buffer solution is', error_ka1)
 print('The error of the Ka of the second buffer solution is', error_ka2)
-
-
