@@ -68,7 +68,7 @@ popt_4, pcov_4 = curve_fit(gauss, x_4, y_4, p0=[0.5, 518, 1, 0.5])
 plt.figure(figsize=(10, 6))
 plt.plot(x_0, y_0, 'bo', label='data')
 plt.plot(x_0, gauss(x_0, *popt_0), 'r-', label='fit')
-plt.legend()
+#plt.legend()
 #plt.title('Gauss fit for 10^-4 M acidic solution')
 plt.xlabel('Wavelength / nm')
 plt.ylabel('Absorbance')
@@ -89,7 +89,7 @@ plt.xlabel('Wavelength / nm')
 plt.ylabel('Absorbance')
 #plt.title('Absorbance spectra of basic solutions')
 plt.grid(True)
-plt.legend()
+#plt.legend()
 plt.savefig('basic.pdf')
 #plt.show()
 
@@ -103,7 +103,7 @@ plt.xlabel('Wavelength / nm')
 plt.ylabel('Absorbance')
 #plt.title('Absorbance spectra of acidic solutions')
 plt.grid(True)
-plt.legend()
+#plt.legend()
 plt.savefig('acidic.pdf')
 plt.show()
 
@@ -122,7 +122,7 @@ plt.xlabel('Wavelength / nm')
 plt.ylabel('Absorbance')
 #plt.title('Absorbance spectra of acidic solutions with Gauss fit')
 plt.grid(True)
-plt.legend()
+#plt.legend()
 plt.savefig('acidic_gauss.pdf')
 plt.show()
 
@@ -135,7 +135,7 @@ plt.xlabel('Wavelength / nm')
 plt.ylabel('Absorbance')
 #plt.title('Absorbance spectra of buffer solutions and 100 μM solutions')
 plt.grid(True)
-plt.legend()
+#plt.legend()
 plt.savefig('buffer_and_10e-4.pdf')
 #plt.show()
 
@@ -173,7 +173,7 @@ plt.xlabel('Concentration / M')
 plt.ylabel('Absorbance')
 #plt.title('Beer-Lambert Plot')
 plt.grid(True)
-plt.legend()
+#plt.legend()
 plt.savefig('beer_lambert.pdf')
 #plt.show()
 
@@ -303,6 +303,10 @@ pka2 = calculate_pKa(5.29, absorbance_buffer2basic, absorbance_buffer2acidic, ep
 print('\nThe pKa of the first buffer solution is', pka1)
 print('The pKa of the second buffer solution is', pka2)
 
+mean_pka = np.mean([pka1, pka2])
+
+print('The mean pKa of the two buffer solutions is', mean_pka)
+
 # Calculate Ka
 
 def calculate_Ka(pKa):
@@ -344,7 +348,7 @@ print('The concentration of the basic solution of the second buffer solution is'
 
 error_pka1 = np.sqrt((((1/(np.log(10)*ind1))**2) * error_c_b1**2) + (((-1/(np.log(10)*hind1))**2) * error_c_a1**2))
 error_pka2 = np.sqrt(((1/(np.log(10)*ind2))**2) * error_c_b2**2 + ((-1/(np.log(10)*hind2))**2) * error_c_a2**2)
-
+mean_error_pka = np.mean([error_pka1, error_pka2])
 error_ka1 = np.sqrt((((1/hind1)**2)*(error_c_b1**2)) + (((-ind1/(hind1**2))**2)*(error_c_a1**2)))
 error_ka2 = np.sqrt((((1/hind2)**2)*(error_c_b2**2)) + (((-ind2/(hind2**2))**2)*(error_c_a2**2)))
 
@@ -356,5 +360,9 @@ print('The error of the concentration of the basic solution of the first buffer 
 print('The error of the concentration of the basic solution of the second buffer solution is', error_c_b2)
 print('The error of the pKa of the first buffer solution is', error_pka1)
 print('The error of the pKa of the second buffer solution is', error_pka2)
+print('The mean error of the pKa of the two buffer solutions is', mean_error_pka)
 print('The error of the Ka of the first buffer solution is', error_ka1)
 print('The error of the Ka of the second buffer solution is', error_ka2)
+
+
+
